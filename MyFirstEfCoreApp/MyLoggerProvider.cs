@@ -1,10 +1,11 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
 namespace MyFirstEfCoreApp
 {
-    internal class MyLoggerProvider: ILoggerProvider
+    public class MyLoggerProvider : ILoggerProvider
     {
         private readonly List<string> _logs;
 
@@ -13,17 +14,16 @@ namespace MyFirstEfCoreApp
             _logs = logs;
         }
 
-        public ILogger GetLogger(string categoryName)
+        public ILogger CreateLogger(string categoryName)
         {
             return new MyLogger(_logs);
         }
 
         public void Dispose()
         {
-
         }
 
-        private class MyLogger: ILogger
+        private class MyLogger : ILogger
         {
             private readonly List<string> _logs;
 
@@ -37,7 +37,7 @@ namespace MyFirstEfCoreApp
                 return logLevel >= LogLevel.Information;
             }
 
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, 
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
                 Func<TState, Exception, string> formatter)
             {
                 _logs.Add(formatter(state, exception));

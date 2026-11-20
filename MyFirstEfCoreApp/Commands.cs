@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +12,10 @@ namespace MyFirstEfCoreApp
     {
         public static void ListAll()
         {
-            using (var db = new AppDbContext()) 
+            using (var db = new AppDbContext())
             {
-                foreach (var book in db.Books.AsNoTracking() 
-                    .Include(book => book.Author)) 
+                foreach (var book in db.Books.AsNoTracking()
+                    .Include(book => book.Author))
                 {
                     var webUrl = book.Author.WebUrl ?? "- no web url given -";
                     Console.WriteLine($"{book.Title} by {book.Author.Name}");
@@ -29,20 +28,29 @@ namespace MyFirstEfCoreApp
         public static void ChangeWebUrl()
         {
             Console.Write("New Quantum Networking WebUrl > ");
-            var newWebUrl = Console.ReadLine(); 
+            var newWebUrl = Console.ReadLine();
 
             using (var db = new AppDbContext())
             {
-                var singleBook = db.Books
-                    .Include(book => book.Author) 
-                    .Single(book => book.Title == "Quantum Networking"); 
+                try
+                {
+                    var singleBook = db.Books
+                        .Include(book => book.Author)
+                        .Single(book => book.Title == "Quantum Networking");
 
-                singleBook.Author.WebUrl = newWebUrl; 
-                db.SaveChanges(); 
-                Console.WriteLine("... SaveChanges called.");
+                    singleBook.Author.WebUrl = newWebUrl;
+                    db.SaveChanges();
+                    Console.WriteLine("... SaveChanges called.");
+                }
+                catch (DbUpdateException ex)
+                {
+                    Console.WriteLine("--- INNER EXCEPTION ---");
+                    Console.WriteLine(ex.InnerException?.Message);
+                    throw; 
+                }
             }
 
-            ListAll(); 
+            ListAll();
         }
 
         public static void ListAllWithLogs()
@@ -88,12 +96,21 @@ namespace MyFirstEfCoreApp
                 var loggerFactory = (ILoggerFactory)serviceProvider.GetService(typeof(ILoggerFactory));
                 loggerFactory.AddProvider(new MyLoggerProvider(logs));
 
-                var singleBook = db.Books
-                    .Include(book => book.Author)
-                    .Single(b => b.Title == "Quantum Networking");
-                singleBook.Author.WebUrl = newWebUrl;
-                db.SaveChanges();
-                Console.Write("... SavedChanges called.");
+                try
+                {
+                    var singleBook = db.Books
+                        .Include(book => book.Author)
+                        .Single(b => b.Title == "Quantum Networking");
+                    singleBook.Author.WebUrl = newWebUrl;
+                    db.SaveChanges();
+                    Console.Write("... SavedChanges called.");
+                }
+                catch (DbUpdateException ex)
+                {
+                    Console.WriteLine("--- INNER EXCEPTION ---");
+                    Console.WriteLine(ex.InnerException?.Message);
+                    throw;
+                }
             }
 
             Console.WriteLine("---------- LOGS ------------------");
@@ -127,7 +144,7 @@ namespace MyFirstEfCoreApp
             var martinFowler = new Author
             {
                 Name = "Martin Fowler",
-                WebUrl = "http:rtinfowler.com/"
+                WebUrl = "http://martinfowler.com/"
             };
 
             var books = new List<Book>
@@ -151,14 +168,21 @@ namespace MyFirstEfCoreApp
                     Title = "Domain-Driven Design",
                     Description = "Linking business needs to software design",
                     PublishedOn = new DateTime(2003, 8, 30),
-                    Author = new Author {Name = "Eric Evans", WebUrl = "http:mainlanguage.com/"}
+                    Author = new Author { Name = "Eric Evans", WebUrl = "http://domainlanguage.com/" }
                 },
                 new Book
                 {
                     Title = "Quantum Networking",
                     Description = "Entangled quantum networking provides faster-than-light data communications",
                     PublishedOn = new DateTime(2057, 1, 1),
-                    Author = new Author {Name = "Future Person"}
+                    Author = new Author { Name = "Future Person" }
+                },
+                new Book
+                {
+                    Title = "Designing drone-resistant distributed systems",
+                    Description = "Architecture, security, scalability, and fault tolerance in the era of UAVs",
+                    PublishedOn = new DateTime(2026, 9, 21),
+                    Author = new Author { Name = "Present Person" }
                 }
             };
 
